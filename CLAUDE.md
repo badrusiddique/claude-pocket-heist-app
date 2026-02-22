@@ -124,3 +124,8 @@ Import pattern: `import Navbar from "@/components/Navbar"` (uses the index.ts ba
 ### Brand Identity
 
 The app uses a clock icon (Clock8 from Lucide) as part of the "Pocket Heist" logo, replacing the "o" in "Pocket". This branding appears in both the navbar and splash page.
+
+## Additional Coding Preferences
+
+- Use the `git switch -c` command to switch to new branches, not `git checkout`.
+- Tests in `tests/` directory mirror `components/` structure
