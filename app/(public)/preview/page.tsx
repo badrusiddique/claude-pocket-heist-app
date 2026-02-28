@@ -1,6 +1,7 @@
 // preview page for newly created UI components
 import Skeleton from '@/components/Skeleton'
 import SkeletonCard from '@/components/Skeleton/SkeletonCard'
+import Avatar from '@/components/Avatar'
 
 export default function PreviewPage() {
   return (
@@ -47,6 +48,36 @@ export default function PreviewPage() {
           </div>
           <div className="bg-light p-6 rounded-lg">
             <SkeletonCard />
+          </div>
+        </div>
+      </section>
+
+      {/* Avatar Component */}
+      <section className="space-y-4">
+        <h3 className="text-lg font-semibold">Avatar</h3>
+
+        <div className="bg-light p-6 rounded-lg">
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col items-center gap-2">
+              <Avatar name="alice" />
+              <p className="text-xs text-body">alice</p>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Avatar name="john" />
+              <p className="text-xs text-body">john</p>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Avatar name="JohnDoe" />
+              <p className="text-xs text-body">JohnDoe</p>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Avatar name="AliceSmith" />
+              <p className="text-xs text-body">AliceSmith</p>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Avatar name="SarahJones" />
+              <p className="text-xs text-body">SarahJones</p>
+            </div>
           </div>
         </div>
       </section>
