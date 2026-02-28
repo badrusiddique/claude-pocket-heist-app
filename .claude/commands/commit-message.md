@@ -3,6 +3,11 @@ description: create a commit message by analyzing git diffs
 allowed-tools: Bash(git status:*), Bash(git diff --staged), Bash(git commit:*)
 ---
 
+<!-- this would save the process on claude as the output of this bash command would be used by claude in the next trip -->
+## Context
+Git Status: !`git status`
+Git Diff Staged: !`git diff --staged`
+
 ## Run these commands:
 
 ```bash
