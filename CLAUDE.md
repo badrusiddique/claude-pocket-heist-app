@@ -48,9 +48,11 @@ npm start          # Start production server
 ### Testing
 ```bash
 npm test           # Run all tests with Vitest in watch mode
+npm test -- --run  # Run tests once (CI mode)
+npm test -- AuthForm.test.tsx  # Run specific test file
 ```
 
-The project uses Vitest with React Testing Library. Test files are located in `tests/` directory. The test setup is configured in `vitest.config.mts` with jsdom environment and global test utilities (configured in `vitest.setup.ts`).
+The project uses Vitest with React Testing Library. Test files are located in `tests/` directory. The test setup is configured in `vitest.config.mts` with happy-dom environment and global test utilities (configured in `vitest.setup.ts`).
 
 ### Linting
 ```bash
@@ -99,7 +101,7 @@ The project uses **hybrid styling approach**:
 **Theme Configuration** (in `app/globals.css`):
 - Custom color palette: primary (#C27AFF purple), secondary (#FB64B6 pink), dark backgrounds
 - Typography: Inter font family
-- Utility classes: `.page-content`, `.center-content`, `.form-title`
+- Utility classes: `.page-content`, `.center-content`, `.form-title`, `.btn`
 
 ### Component Organization
 
@@ -125,7 +127,43 @@ Import pattern: `import Navbar from "@/components/Navbar"` (uses the index.ts ba
 
 The app uses a clock icon (Clock8 from Lucide) as part of the "Pocket Heist" logo, replacing the "o" in "Pocket". This branding appears in both the navbar and splash page.
 
+## Testing Strategy
+
+- **Test Environment:** happy-dom (lightweight DOM implementation that avoids ESM/CommonJS conflicts)
+- **Test Location:** Tests mirror component structure in `tests/` directory
+- **Query Strategy:** Use semantic queries from Testing Library (by role, by label, by text) rather than class names or IDs
+- **User Interactions:** Use `userEvent` from `@testing-library/user-event` for simulating user actions
+- **Global Setup:** Test utilities imported automatically via `vitest.setup.ts` with `@testing-library/jest-dom/vitest`
+
+## Common Patterns
+
+### CSS Module Pattern
+Use `@reference` directive to import global styles into CSS Modules:
+```css
+@reference "../../app/globals.css";
+```
+
+### Barrel Exports
+Each component exports via `index.ts` for cleaner imports:
+```typescript
+// components/Avatar/index.ts
+export { default } from "./Avatar"
+```
+
+### Controlled Form Inputs
+For form components, use controlled inputs with state management and computed property keys:
+```typescript
+function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  setState((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+}
+```
+
+### Client-Side Components
+Mark interactive components with `"use client"` at the top of the file when using hooks like `useState`, `useEffect`, etc.
+
 ## Additional Coding Preferences
 
-- Use the `git switch -c` command to switch to new branches, not `git checkout`.
-- Tests in `tests/` directory mirror `components/` structure
+- Use `git switch -c` command to switch to new branches, not `git checkout`
+- Prefer semantic HTML elements and ARIA attributes for accessibility
+- Keep components focused and single-responsibility
+- Test critical user interactions and state changes
