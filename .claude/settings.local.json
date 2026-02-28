@@ -13,11 +13,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"hello\""
+            "command": "jq . > tool-use.json"
           },
           {
             "type": "command",
-            "command": "jq . > tool-use.json"
+            "command": "jq -r '.tool_input.file_path' | { read ti_file_path; [[ \"$ti_file_path\" =~ \\.tsx?$ ]] && npx prettier --write \"$ti_file_path\"; }"
           }
         ]
       },
