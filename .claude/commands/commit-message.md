@@ -40,3 +40,5 @@ Use the following format for making the commit message:
 3. Ask for confirmation before committing
 
 DO NOT auto-commit - wait for user approval, and only commit if the user says so.
+
+DO NOT add co-authored-by information, make sure the commit message looks human and not like an AI.
