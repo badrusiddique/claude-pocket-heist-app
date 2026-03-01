@@ -46,9 +46,10 @@ svg.logo {
 
 /* button styles */
 .btn {
-  @apply px-4 py-2 rounded-lg font-semibold transition-colors duration-200;
-  background-color: var(--color-primary);
-  color: var(--color-dark);
+  @apply px-4 py-2 text-sm font-bold transition-colors duration-200;
+  background-color: #027dbb;
+  color: #ffffff;
+  border-radius: 2px;
 }
 .btn:hover {
   opacity: 0.9;

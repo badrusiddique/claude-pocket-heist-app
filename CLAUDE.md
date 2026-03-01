@@ -167,3 +167,6 @@ Mark interactive components with `"use client"` at the top of the file when usin
 - Prefer semantic HTML elements and ARIA attributes for accessibility
 - Keep components focused and single-responsibility
 - Test critical user interactions and state changes
+
+## Checking Documentation
+Always check for up-to-date documentation when implementing features from libraries and frameworks, using the Context7 MCP server, to plan your work.
