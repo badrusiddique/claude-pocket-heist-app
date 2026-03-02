@@ -45,3 +45,8 @@
   color: var(--color-primary);
   @apply underline;
 }
+
+.errorMessage {
+  color: var(--color-error);
+  @apply text-sm text-center;
+}

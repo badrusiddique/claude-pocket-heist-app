@@ -40,10 +40,10 @@ Integrate the signup form with Firebase Authentication to create new user accoun
 
 ## Open Questions
 
-- Should display name extraction support formats other than pascal-case (e.g., snake_case)?
-- What should happen if Firestore document creation fails but Auth user was created?
-- Should there be a retry mechanism for failed Firestore writes?
-- Should signup automatically log the user in and establish the auth session?
+- Should display name extraction support formats other than pascal-case (e.g., snake_case)? you can decide
+- What should happen if Firestore document creation fails but Auth user was created? you can decide
+- Should there be a retry mechanism for failed Firestore writes? no
+- Should signup automatically log the user in and establish the auth session? yes
 
 ## Testing Guidelines
 

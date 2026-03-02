@@ -6,30 +6,94 @@
   "hook_event_name": "PostToolUse",
   "tool_name": "Edit",
   "tool_input": {
-    "file_path": "/Users/badru.siddique/magento/learning/claude-pocket-heist-app/tests/context/AuthContext.test.tsx",
-    "old_string": "      callback(mockFirebaseUser as any);",
-    "new_string": "      callback(mockFirebaseUser as unknown);",
+    "file_path": "/Users/badru.siddique/magento/learning/claude-pocket-heist-app/tests/components/AuthForm.test.tsx",
+    "old_string": "      } as any);",
+    "new_string": "      } as unknown);",
     "replace_all": true
   },
   "tool_response": {
-    "filePath": "/Users/badru.siddique/magento/learning/claude-pocket-heist-app/tests/context/AuthContext.test.tsx",
-    "oldString": "      callback(mockFirebaseUser as any);",
-    "newString": "      callback(mockFirebaseUser as unknown);",
-    "originalFile": "import { render, screen, act } from \"@testing-library/react\";\nimport { describe, it, expect, vi, beforeEach, afterEach } from \"vitest\";\nimport { AuthProvider, useUser } from \"@/context/AuthContext\";\n\n// Mock firebase/auth\nvi.mock(\"firebase/auth\", () => ({\n  onAuthStateChanged: vi.fn(),\n}));\n\n// Mock @/lib/firebase to prevent real Firebase app initialization\nvi.mock(\"@/lib/firebase\", () => ({\n  auth: {},\n}));\n\nfunction TestConsumer() {\n  const { user, loading } = useUser();\n  if (loading) return <div>Loading...</div>;\n  if (!user) return <div>No user</div>;\n  return <div>User: {user.email}</div>;\n}\n\ndescribe(\"AuthContext\", () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n  });\n\n  afterEach(() => {\n    vi.restoreAllMocks();\n  });\n\n  it(\"returns loading: true before onAuthStateChanged fires\", async () => {\n    const { onAuthStateChanged } = await import(\"firebase/auth\");\n    vi.mocked(onAuthStateChanged).mockImplementation(() => vi.fn());\n\n    render(\n      <AuthProvider>\n        <TestConsumer />\n      </AuthProvider>,\n    );\n\n    expect(screen.getByText(\"Loading...\")).toBeInTheDocument();\n  });\n\n  it(\"returns user: null when not authenticated\", async () => {\n    const { onAuthStateChanged } = await import(\"firebase/auth\");\n    vi.mocked(onAuthStateChanged).mockImplementation((_, callback) => {\n      callback(null);\n      return vi.fn(); // unsubscribe stub\n    });\n\n    render(\n      <AuthProvider>\n        <TestConsumer />\n      </AuthProvider>,\n    );\n\n    expect(screen.getByText(\"No user\")).toBeInTheDocument();\n  });\n\n  it(\"returns user object when authenticated\", async () => {\n    const { onAuthStateChanged } = await import(\"firebase/auth\");\n    const mockFirebaseUser = {\n      uid: \"abc123\",\n      email: \"test@example.com\",\n      displayName: \"Test User\",\n    };\n    vi.mocked(onAuthStateChanged).mockImplementation((_, callback) => {\n      callback(mockFirebaseUser as any);\n      return vi.fn();\n    });\n\n    render(\n      <AuthProvider>\n        <TestConsumer />\n      </AuthProvider>,\n    );\n\n    expect(screen.getByText(\"User: test@example.com\")).toBeInTheDocument();\n  });\n\n  it(\"multiple consumers receive the same auth state\", async () => {\n    const { onAuthStateChanged } = await import(\"firebase/auth\");\n    const mockFirebaseUser = {\n      uid: \"abc123\",\n      email: \"test@example.com\",\n      displayName: \"Test User\",\n    };\n    vi.mocked(onAuthStateChanged).mockImplementation((_, callback) => {\n      callback(mockFirebaseUser as unknown);\n      return vi.fn();\n    });\n\n    render(\n      <AuthProvider>\n        <TestConsumer />\n        <TestConsumer />\n      </AuthProvider>,\n    );\n\n    expect(screen.getAllByText(\"User: test@example.com\")).toHaveLength(2);\n  });\n\n  it(\"auth state change triggers re-render in all consuming components\", async () => {\n    const { onAuthStateChanged } = await import(\"firebase/auth\");\n    let triggerChange: (user: unknown) => void = () => {};\n\n    vi.mocked(onAuthStateChanged).mockImplementation((_, callback) => {\n      triggerChange = callback;\n      callback(null); // initial: logged out\n      return vi.fn();\n    });\n\n    render(\n      <AuthProvider>\n        <TestConsumer />\n      </AuthProvider>,\n    );\n    expect(screen.getByText(\"No user\")).toBeInTheDocument();\n\n    await act(async () => {\n      triggerChange({\n        uid: \"abc123\",\n        email: \"test@example.com\",\n        displayName: \"Test User\",\n      });\n    });\n\n    expect(screen.getByText(\"User: test@example.com\")).toBeInTheDocument();\n  });\n\n  it(\"unsubscribes from onAuthStateChanged on unmount\", async () => {\n    const { onAuthStateChanged } = await import(\"firebase/auth\");\n    const unsubscribe = vi.fn();\n\n    vi.mocked(onAuthStateChanged).mockImplementation((_, callback) => {\n      callback(null);\n      return unsubscribe;\n    });\n\n    const { unmount } = render(\n      <AuthProvider>\n        <TestConsumer />\n      </AuthProvider>,\n    );\n    unmount();\n\n    expect(unsubscribe).toHaveBeenCalledOnce();\n  });\n});\n",
+    "filePath": "/Users/badru.siddique/magento/learning/claude-pocket-heist-app/tests/components/AuthForm.test.tsx",
+    "oldString": "      } as any);",
+    "newString": "      } as unknown);",
+    "originalFile": "import { render, screen, waitFor } from \"@testing-library/react\";\nimport userEvent from \"@testing-library/user-event\";\nimport { describe, it, expect, vi, beforeEach, afterEach } from \"vitest\";\nimport AuthForm from \"@/components/AuthForm\";\n\n// Prevent real Firebase initialization\nvi.mock(\"@/lib/firebase\", () => ({\n  auth: {},\n  db: {},\n}));\n\n// Mock Firebase Auth functions\nvi.mock(\"firebase/auth\", () => ({\n  createUserWithEmailAndPassword: vi.fn(),\n  updateProfile: vi.fn(),\n}));\n\n// Mock Firebase Firestore functions\nvi.mock(\"firebase/firestore\", () => ({\n  doc: vi.fn(() => ({})),\n  setDoc: vi.fn(),\n}));\n\n// Mock Next.js router\nconst mockPush = vi.fn();\nvi.mock(\"next/navigation\", () => ({\n  useRouter: () => ({ push: mockPush }),\n}));\n\ndescribe(\"AuthForm\", () => {\n  beforeEach(() => {\n    mockPush.mockClear();\n    vi.clearAllMocks();\n  });\n\n  afterEach(() => {\n    vi.restoreAllMocks();\n  });\n\n  it(\"renders the login heading in login mode\", () => {\n    render(<AuthForm mode=\"login\" />);\n\n    const heading = screen.getByRole(\"heading\", { level: 1 });\n    expect(heading).toHaveTextContent(/log in/i);\n  });\n\n  it(\"renders the signup heading in signup mode\", () => {\n    render(<AuthForm mode=\"signup\" />);\n\n    const heading = screen.getByRole(\"heading\", { level: 1 });\n    expect(heading).toHaveTextContent(/sign up/i);\n  });\n\n  it(\"renders the correct submit button label per mode\", () => {\n    const { unmount } = render(<AuthForm mode=\"login\" />);\n    expect(screen.getByRole(\"button\", { name: /login/i })).toBeInTheDocument();\n    unmount();\n\n    render(<AuthForm mode=\"signup\" />);\n    expect(\n      screen.getByRole(\"button\", { name: /sign up/i }),\n    ).toBeInTheDocument();\n  });\n\n  it(\"toggles password visibility\", async () => {\n    const user = userEvent.setup();\n    render(<AuthForm mode=\"login\" />);\n\n    const passwordInput = screen.getByLabelText(\"Password\");\n    expect(passwordInput).toHaveAttribute(\"type\", \"password\");\n\n    await user.click(screen.getByRole(\"button\", { name: /show password/i }));\n    expect(passwordInput).toHaveAttribute(\"type\", \"text\");\n\n    await user.click(screen.getByRole(\"button\", { name: /hide password/i }));\n    expect(passwordInput).toHaveAttribute(\"type\", \"password\");\n  });\n\n  it(\"accepts typed input in email and password fields\", async () => {\n    const user = userEvent.setup();\n    render(<AuthForm mode=\"login\" />);\n\n    const emailInput = screen.getByLabelText(/email/i);\n    const passwordInput = screen.getByLabelText(\"Password\");\n\n    await user.type(emailInput, \"test@example.com\");\n    await user.type(passwordInput, \"secret123\");\n\n    expect(emailInput).toHaveValue(\"test@example.com\");\n    expect(passwordInput).toHaveValue(\"secret123\");\n  });\n\n  it(\"renders navigation links to the other auth page\", () => {\n    const { unmount } = render(<AuthForm mode=\"login\" />);\n    expect(screen.getByRole(\"link\", { name: /sign up/i })).toHaveAttribute(\n      \"href\",\n      \"/signup\",\n    );\n    unmount();\n\n    render(<AuthForm mode=\"signup\" />);\n    expect(screen.getByRole(\"link\", { name: /log in/i })).toHaveAttribute(\n      \"href\",\n      \"/login\",\n    );\n  });\n\n  describe(\"Signup flow\", () => {\n    it(\"calls createUserWithEmailAndPassword with correct credentials on signup submit\", async () => {\n      const { createUserWithEmailAndPassword } = await import(\"firebase/auth\");\n      const { updateProfile } = await import(\"firebase/auth\");\n      const { setDoc } = await import(\"firebase/firestore\");\n\n      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({\n        user: { uid: \"u1\", email: \"test@example.com\" },\n      } as any);\n      vi.mocked(updateProfile).mockResolvedValue(undefined);\n      vi.mocked(setDoc).mockResolvedValue(undefined);\n\n      const user = userEvent.setup();\n      render(<AuthForm mode=\"signup\" />);\n\n      await user.type(screen.getByLabelText(/email/i), \"test@example.com\");\n      await user.type(screen.getByLabelText(\"Password\"), \"secret123\");\n      await user.click(screen.getByRole(\"button\", { name: /sign up/i }));\n\n      await waitFor(() => {\n        expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(\n          expect.any(Object),\n          \"test@example.com\",\n          \"secret123\",\n        );\n      });\n    });\n\n    it(\"disables submit button while loading\", async () => {\n      const { createUserWithEmailAndPassword } = await import(\"firebase/auth\");\n\n      vi.mocked(createUserWithEmailAndPassword).mockImplementation(\n        () => new Promise(() => {}), // never resolves\n      );\n\n      const user = userEvent.setup();\n      render(<AuthForm mode=\"signup\" />);\n\n      await user.type(screen.getByLabelText(/email/i), \"test@example.com\");\n      await user.type(screen.getByLabelText(\"Password\"), \"secret123\");\n      await user.click(screen.getByRole(\"button\", { name: /sign up/i }));\n\n      await waitFor(() => {\n        expect(\n          screen.getByRole(\"button\", { name: /signing up/i }),\n        ).toBeDisabled();\n      });\n    });\n\n    it(\"calls updateProfile with derived displayName\", async () => {\n      const { createUserWithEmailAndPassword } = await import(\"firebase/auth\");\n      const { updateProfile } = await import(\"firebase/auth\");\n      const { setDoc } = await import(\"firebase/firestore\");\n\n      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({\n        user: { uid: \"u1\", email: \"john.smith@example.com\" },\n      } as any);\n      vi.mocked(updateProfile).mockResolvedValue(undefined);\n      vi.mocked(setDoc).mockResolvedValue(undefined);\n\n      const user = userEvent.setup();\n      render(<AuthForm mode=\"signup\" />);\n\n      await user.type(\n        screen.getByLabelText(/email/i),\n        \"john.smith@example.com\",\n      );\n      await user.type(screen.getByLabelText(\"Password\"), \"secret123\");\n      await user.click(screen.getByRole(\"button\", { name: /sign up/i }));\n\n      await waitFor(() => {\n        expect(updateProfile).toHaveBeenCalledWith(\n          expect.any(Object),\n          expect.objectContaining({ displayName: \"Js\" }),\n        );\n      });\n    });\n\n    it(\"creates Firestore user document with correct fields\", async () => {\n      const { createUserWithEmailAndPassword } = await import(\"firebase/auth\");\n      const { updateProfile } = await import(\"firebase/auth\");\n      const { setDoc } = await import(\"firebase/firestore\");\n\n      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({\n        user: { uid: \"u1\", email: \"test@example.com\" },\n      } as any);\n      vi.mocked(updateProfile).mockResolvedValue(undefined);\n      vi.mocked(setDoc).mockResolvedValue(undefined);\n\n      const user = userEvent.setup();\n      render(<AuthForm mode=\"signup\" />);\n\n      await user.type(screen.getByLabelText(/email/i), \"test@example.com\");\n      await user.type(screen.getByLabelText(\"Password\"), \"secret123\");\n      await user.click(screen.getByRole(\"button\", { name: /sign up/i }));\n\n      await waitFor(() => {\n        expect(setDoc).toHaveBeenCalledWith(\n          expect.any(Object),\n          expect.objectContaining({\n            uid: \"u1\",\n            email: \"test@example.com\",\n            displayName: expect.any(String),\n          }),\n        );\n      });\n    });\n\n    it(\"redirects to /heists on successful signup\", async () => {\n      const { createUserWithEmailAndPassword } = await import(\"firebase/auth\");\n      const { updateProfile } = await import(\"firebase/auth\");\n      const { setDoc } = await import(\"firebase/firestore\");\n\n      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({\n        user: { uid: \"u1\", email: \"test@example.com\" },\n      } as any);\n      vi.mocked(updateProfile).mockResolvedValue(undefined);\n      vi.mocked(setDoc).mockResolvedValue(undefined);\n\n      const user = userEvent.setup();\n      render(<AuthForm mode=\"signup\" />);\n\n      await user.type(screen.getByLabelText(/email/i), \"test@example.com\");\n      await user.type(screen.getByLabelText(\"Password\"), \"secret123\");\n      await user.click(screen.getByRole(\"button\", { name: /sign up/i }));\n\n      await waitFor(() => {\n        expect(mockPush).toHaveBeenCalledWith(\"/heists\");\n      });\n    });\n\n    it(\"displays error message when signup fails\", async () => {\n      const { createUserWithEmailAndPassword } = await import(\"firebase/auth\");\n\n      const errorMessage = \"Email already in use\";\n      vi.mocked(createUserWithEmailAndPassword).mockRejectedValue(\n        new Error(errorMessage),\n      );\n\n      const user = userEvent.setup();\n      render(<AuthForm mode=\"signup\" />);\n\n      await user.type(screen.getByLabelText(/email/i), \"test@example.com\");\n      await user.type(screen.getByLabelText(\"Password\"), \"secret123\");\n      await user.click(screen.getByRole(\"button\", { name: /sign up/i }));\n\n      await waitFor(() => {\n        expect(screen.getByRole(\"alert\")).toHaveTextContent(errorMessage);\n      });\n    });\n\n    it(\"redirects even if Firestore write fails\", async () => {\n      const { createUserWithEmailAndPassword } = await import(\"firebase/auth\");\n      const { updateProfile } = await import(\"firebase/auth\");\n      const { setDoc } = await import(\"firebase/firestore\");\n\n      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({\n        user: { uid: \"u1\", email: \"test@example.com\" },\n      } as any);\n      vi.mocked(updateProfile).mockResolvedValue(undefined);\n      vi.mocked(setDoc).mockRejectedValue(new Error(\"Firestore error\"));\n\n      const user = userEvent.setup();\n      render(<AuthForm mode=\"signup\" />);\n\n      await user.type(screen.getByLabelText(/email/i), \"test@example.com\");\n      await user.type(screen.getByLabelText(\"Password\"), \"secret123\");\n      await user.click(screen.getByRole(\"button\", { name: /sign up/i }));\n\n      await waitFor(() => {\n        expect(mockPush).toHaveBeenCalledWith(\"/heists\");\n      });\n    });\n\n    it(\"does not call createUserWithEmailAndPassword in login mode\", async () => {\n      const { createUserWithEmailAndPassword } = await import(\"firebase/auth\");\n\n      const user = userEvent.setup();\n      render(<AuthForm mode=\"login\" />);\n\n      await user.type(screen.getByLabelText(/email/i), \"test@example.com\");\n      await user.type(screen.getByLabelText(\"Password\"), \"secret123\");\n      await user.click(screen.getByRole(\"button\", { name: /login/i }));\n\n      expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();\n    });\n  });\n});\n",
     "structuredPatch": [
       {
-        "oldStart": 65,
+        "oldStart": 113,
         "oldLines": 7,
-        "newStart": 65,
+        "newStart": 113,
         "newLines": 7,
         "lines": [
-          "       displayName: \"Test User\",",
-          "     };",
-          "     vi.mocked(onAuthStateChanged).mockImplementation((_, callback) => {",
-          "-      callback(mockFirebaseUser as any);",
-          "+      callback(mockFirebaseUser as unknown);",
-          "       return vi.fn();",
-          "     });",
+          " ",
+          "       vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({",
+          "         user: { uid: \"u1\", email: \"test@example.com\" },",
+          "-      } as any);",
+          "+      } as unknown);",
+          "       vi.mocked(updateProfile).mockResolvedValue(undefined);",
+          "       vi.mocked(setDoc).mockResolvedValue(undefined);",
+          " "
+        ]
+      },
+      {
+        "oldStart": 161,
+        "oldLines": 7,
+        "newStart": 161,
+        "newLines": 7,
+        "lines": [
+          " ",
+          "       vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({",
+          "         user: { uid: \"u1\", email: \"john.smith@example.com\" },",
+          "-      } as any);",
+          "+      } as unknown);",
+          "       vi.mocked(updateProfile).mockResolvedValue(undefined);",
+          "       vi.mocked(setDoc).mockResolvedValue(undefined);",
+          " "
+        ]
+      },
+      {
+        "oldStart": 190,
+        "oldLines": 7,
+        "newStart": 190,
+        "newLines": 7,
+        "lines": [
+          " ",
+          "       vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({",
+          "         user: { uid: \"u1\", email: \"test@example.com\" },",
+          "-      } as any);",
+          "+      } as unknown);",
+          "       vi.mocked(updateProfile).mockResolvedValue(undefined);",
+          "       vi.mocked(setDoc).mockResolvedValue(undefined);",
+          " "
+        ]
+      },
+      {
+        "oldStart": 220,
+        "oldLines": 7,
+        "newStart": 220,
+        "newLines": 7,
+        "lines": [
+          " ",
+          "       vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({",
+          "         user: { uid: \"u1\", email: \"test@example.com\" },",
+          "-      } as any);",
+          "+      } as unknown);",
+          "       vi.mocked(updateProfile).mockResolvedValue(undefined);",
+          "       vi.mocked(setDoc).mockResolvedValue(undefined);",
+          " "
+        ]
+      },
+      {
+        "oldStart": 263,
+        "oldLines": 7,
+        "newStart": 263,
+        "newLines": 7,
+        "lines": [
+          " ",
+          "       vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({",
+          "         user: { uid: \"u1\", email: \"test@example.com\" },",
+          "-      } as any);",
+          "+      } as unknown);",
+          "       vi.mocked(updateProfile).mockResolvedValue(undefined);",
+          "       vi.mocked(setDoc).mockRejectedValue(new Error(\"Firestore error\"));",
           " "
         ]
       }
@@ -37,5 +101,5 @@
     "userModified": false,
     "replaceAll": true
   },
-  "tool_use_id": "toolu_01Mtdp2EbmeXNzcGiS5TBfjd"
+  "tool_use_id": "toolu_017MqZYD3UzW6uc5AJpZfTR1"
 }

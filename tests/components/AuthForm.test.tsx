@@ -1,9 +1,38 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import AuthForm from "@/components/AuthForm";
 
+// Prevent real Firebase initialization
+vi.mock("@/lib/firebase", () => ({
+  auth: {},
+  db: {},
+}));
+
+// Mock Firebase Auth functions
+vi.mock("firebase/auth", () => ({
+  createUserWithEmailAndPassword: vi.fn(),
+  updateProfile: vi.fn(),
+}));
+
+// Mock Firebase Firestore functions
+vi.mock("firebase/firestore", () => ({
+  doc: vi.fn(() => ({})),
+  setDoc: vi.fn(),
+}));
+
+// Mock Next.js router
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
 describe("AuthForm", () => {
+  beforeEach(() => {
+    mockPush.mockClear();
+    vi.clearAllMocks();
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -61,21 +90,6 @@ describe("AuthForm", () => {
     expect(passwordInput).toHaveValue("secret123");
   });
 
-  it("logs form data to console on submit", async () => {
-    const user = userEvent.setup();
-    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    render(<AuthForm mode="login" />);
-
-    await user.type(screen.getByLabelText(/email/i), "test@example.com");
-    await user.type(screen.getByLabelText("Password"), "secret123");
-    await user.click(screen.getByRole("button", { name: /login/i }));
-
-    expect(consoleSpy).toHaveBeenCalledWith({
-      email: "test@example.com",
-      password: "secret123",
-    });
-  });
-
   it("renders navigation links to the other auth page", () => {
     const { unmount } = render(<AuthForm mode="login" />);
     expect(screen.getByRole("link", { name: /sign up/i })).toHaveAttribute(
@@ -89,5 +103,193 @@ describe("AuthForm", () => {
       "href",
       "/login",
     );
+  });
+
+  describe("Signup flow", () => {
+    it("calls createUserWithEmailAndPassword with correct credentials on signup submit", async () => {
+      const { createUserWithEmailAndPassword } = await import("firebase/auth");
+      const { updateProfile } = await import("firebase/auth");
+      const { setDoc } = await import("firebase/firestore");
+
+      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({
+        user: { uid: "u1", email: "test@example.com" },
+      } as unknown);
+      vi.mocked(updateProfile).mockResolvedValue(undefined);
+      vi.mocked(setDoc).mockResolvedValue(undefined);
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="signup" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /sign up/i }));
+
+      await waitFor(() => {
+        expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(
+          expect.any(Object),
+          "test@example.com",
+          "secret123",
+        );
+      });
+    });
+
+    it("disables submit button while loading", async () => {
+      const { createUserWithEmailAndPassword } = await import("firebase/auth");
+
+      vi.mocked(createUserWithEmailAndPassword).mockImplementation(
+        () => new Promise(() => {}), // never resolves
+      );
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="signup" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /sign up/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: /signing up/i }),
+        ).toBeDisabled();
+      });
+    });
+
+    it("calls updateProfile with derived displayName", async () => {
+      const { createUserWithEmailAndPassword } = await import("firebase/auth");
+      const { updateProfile } = await import("firebase/auth");
+      const { setDoc } = await import("firebase/firestore");
+
+      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({
+        user: { uid: "u1", email: "john.smith@example.com" },
+      } as unknown);
+      vi.mocked(updateProfile).mockResolvedValue(undefined);
+      vi.mocked(setDoc).mockResolvedValue(undefined);
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="signup" />);
+
+      await user.type(
+        screen.getByLabelText(/email/i),
+        "john.smith@example.com",
+      );
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /sign up/i }));
+
+      await waitFor(() => {
+        expect(updateProfile).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({ displayName: "Js" }),
+        );
+      });
+    });
+
+    it("creates Firestore user document with correct fields", async () => {
+      const { createUserWithEmailAndPassword } = await import("firebase/auth");
+      const { updateProfile } = await import("firebase/auth");
+      const { setDoc } = await import("firebase/firestore");
+
+      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({
+        user: { uid: "u1", email: "test@example.com" },
+      } as unknown);
+      vi.mocked(updateProfile).mockResolvedValue(undefined);
+      vi.mocked(setDoc).mockResolvedValue(undefined);
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="signup" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /sign up/i }));
+
+      await waitFor(() => {
+        expect(setDoc).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            uid: "u1",
+            email: "test@example.com",
+            displayName: expect.any(String),
+          }),
+        );
+      });
+    });
+
+    it("redirects to /heists on successful signup", async () => {
+      const { createUserWithEmailAndPassword } = await import("firebase/auth");
+      const { updateProfile } = await import("firebase/auth");
+      const { setDoc } = await import("firebase/firestore");
+
+      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({
+        user: { uid: "u1", email: "test@example.com" },
+      } as unknown);
+      vi.mocked(updateProfile).mockResolvedValue(undefined);
+      vi.mocked(setDoc).mockResolvedValue(undefined);
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="signup" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /sign up/i }));
+
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith("/heists");
+      });
+    });
+
+    it("displays error message when signup fails", async () => {
+      const { createUserWithEmailAndPassword } = await import("firebase/auth");
+
+      const errorMessage = "Email already in use";
+      vi.mocked(createUserWithEmailAndPassword).mockRejectedValue(
+        new Error(errorMessage),
+      );
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="signup" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /sign up/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toHaveTextContent(errorMessage);
+      });
+    });
+
+    it("redirects even if Firestore write fails", async () => {
+      const { createUserWithEmailAndPassword } = await import("firebase/auth");
+      const { updateProfile } = await import("firebase/auth");
+      const { setDoc } = await import("firebase/firestore");
+
+      vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({
+        user: { uid: "u1", email: "test@example.com" },
+      } as unknown);
+      vi.mocked(updateProfile).mockResolvedValue(undefined);
+      vi.mocked(setDoc).mockRejectedValue(new Error("Firestore error"));
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="signup" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /sign up/i }));
+
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith("/heists");
+      });
+    });
+
+    it("does not call createUserWithEmailAndPassword in login mode", async () => {
+      const { createUserWithEmailAndPassword } = await import("firebase/auth");
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="login" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /login/i }));
+
+      expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
+    });
   });
 });
