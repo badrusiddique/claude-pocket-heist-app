@@ -1,15 +1,16 @@
 // components
-import Navbar from "@/components/Navbar"
+import Navbar from "@/components/Navbar";
+import RouteGuard from "@/components/RouteGuard";
 
 export default function HeistsLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
-    <>
+    <RouteGuard>
       <Navbar />
       <main>{children}</main>
-    </>
-  )
+    </RouteGuard>
+  );
 }
