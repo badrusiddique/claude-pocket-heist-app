@@ -24,7 +24,8 @@
       "Bash(npx firebase-tools:*)",
       "Bash(git:*)",
       "Bash(npm run:*)",
-      "Skill(commit-message)"
+      "Skill(commit-message)",
+      "Bash(npx eslint:*)"
     ]
   },
   "hooks": {
