@@ -4,7 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { extractDisplayName } from "@/lib/utils";
@@ -24,8 +28,20 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (mode !== "signup") {
-      // TODO: implement login
+    if (mode === "login") {
+      setLoading(true);
+      setError(null);
+      try {
+        const { email, password } = formData;
+        await signInWithEmailAndPassword(auth, email, password);
+        router.push("/heists");
+      } catch (authError) {
+        const message =
+          authError instanceof Error ? authError.message : "Login failed";
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 

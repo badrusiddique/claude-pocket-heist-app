@@ -13,6 +13,7 @@ vi.mock("@/lib/firebase", () => ({
 vi.mock("firebase/auth", () => ({
   createUserWithEmailAndPassword: vi.fn(),
   updateProfile: vi.fn(),
+  signInWithEmailAndPassword: vi.fn(),
 }));
 
 // Mock Firebase Firestore functions
@@ -290,6 +291,104 @@ describe("AuthForm", () => {
       await user.click(screen.getByRole("button", { name: /login/i }));
 
       expect(createUserWithEmailAndPassword).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Login flow", () => {
+    it("calls signInWithEmailAndPassword with correct credentials on login submit", async () => {
+      const { signInWithEmailAndPassword } = await import("firebase/auth");
+
+      vi.mocked(signInWithEmailAndPassword).mockResolvedValue({
+        user: { uid: "u1", email: "test@example.com" },
+      } as unknown);
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="login" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /login/i }));
+
+      await waitFor(() => {
+        expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
+          expect.any(Object),
+          "test@example.com",
+          "secret123",
+        );
+      });
+    });
+
+    it("disables submit button while logging in", async () => {
+      const { signInWithEmailAndPassword } = await import("firebase/auth");
+
+      vi.mocked(signInWithEmailAndPassword).mockImplementation(
+        () => new Promise(() => {}), // never resolves
+      );
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="login" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /login/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: /logging in/i }),
+        ).toBeDisabled();
+      });
+    });
+
+    it("redirects to /heists on successful login", async () => {
+      const { signInWithEmailAndPassword } = await import("firebase/auth");
+
+      vi.mocked(signInWithEmailAndPassword).mockResolvedValue({
+        user: { uid: "u1", email: "test@example.com" },
+      } as unknown);
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="login" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /login/i }));
+
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith("/heists");
+      });
+    });
+
+    it("displays error message when login fails", async () => {
+      const { signInWithEmailAndPassword } = await import("firebase/auth");
+
+      const errorMessage = "Invalid login credentials";
+      vi.mocked(signInWithEmailAndPassword).mockRejectedValue(
+        new Error(errorMessage),
+      );
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="login" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "wrongpassword");
+      await user.click(screen.getByRole("button", { name: /login/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toHaveTextContent(errorMessage);
+      });
+    });
+
+    it("does not call signInWithEmailAndPassword in signup mode", async () => {
+      const { signInWithEmailAndPassword } = await import("firebase/auth");
+
+      const user = userEvent.setup();
+      render(<AuthForm mode="signup" />);
+
+      await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "secret123");
+      await user.click(screen.getByRole("button", { name: /sign up/i }));
+
+      expect(signInWithEmailAndPassword).not.toHaveBeenCalled();
     });
   });
 });
