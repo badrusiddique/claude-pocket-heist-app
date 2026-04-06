@@ -52,6 +52,7 @@ export default function CreateHeistPage() {
       setErrors(errs);
       return;
     }
+    if (!user) return;
     setSubmitting(true);
     try {
       await addDoc(collection(db, "heists"), {

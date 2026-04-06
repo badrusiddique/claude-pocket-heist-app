@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-import { useHeist } from "./useHeist";
+import { useHeist } from "@/hooks/useHeist";
 
 vi.mock("firebase/firestore", () => ({
   getDoc: vi.fn(),

@@ -1,3 +1,5 @@
+"use client";
+
 import type { Heist } from "@/lib/types";
 import CountdownTimer from "@/components/CountdownTimer/CountdownTimer";
 import styles from "./HeistCard.module.css";
