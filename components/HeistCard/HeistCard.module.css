@@ -1,0 +1,29 @@
+@reference "../../app/globals.css";
+
+.card {
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: #1a1a1a;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #C27AFF;
+  margin: 0;
+}
+
+.description {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
