@@ -1,0 +1,397 @@
+@reference "../../app/globals.css";
+
+/* Animation keyframes */
+@keyframes gridPulse {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInCard {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes buttonHoverGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(194, 122, 255, 0.5), inset 0 0 20px rgba(194, 122, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(194, 122, 255, 0.8), inset 0 0 20px rgba(194, 122, 255, 0.2);
+  }
+}
+
+@keyframes scanlineMove {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+/* Main container */
+.container {
+  @apply min-h-lvh bg-dark flex flex-col items-center justify-center relative overflow-hidden;
+  background-color: #030712;
+}
+
+/* Animated background elements */
+.gridBackground {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(194, 122, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(194, 122, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridPulse 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.glowOrb1 {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(194, 122, 255, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  top: -100px;
+  left: -100px;
+  animation: glowPulse 8s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(60px);
+}
+
+.glowOrb2 {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(251, 100, 182, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  bottom: -150px;
+  right: -150px;
+  animation: glowPulse 10s ease-in-out infinite;
+  animation-delay: 2s;
+  pointer-events: none;
+  filter: blur(80px);
+}
+
+/* Content container */
+.content {
+  position: relative;
+  z-index: 10;
+  @apply w-full max-w-4xl mx-auto px-4 py-20;
+  animation: fadeInDown 1s ease-out;
+}
+
+/* Hero header section */
+.heroHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.logoWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.logoBracket {
+  @apply text-primary text-5xl font-bold;
+  animation: fadeInDown 1s ease-out;
+  animation-delay: 0.1s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.logo {
+  @apply text-6xl font-black tracking-tight text-heading;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  animation: fadeInDown 1s ease-out;
+  animation-delay: 0.2s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  background: linear-gradient(135deg, #C27AFF 0%, #FB64B6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(194, 122, 255, 0.3);
+}
+
+.clockIcon {
+  @apply text-primary;
+  filter: drop-shadow(0 0 8px rgba(194, 122, 255, 0.6));
+  animation: fadeInDown 1s ease-out;
+  animation-delay: 0.2s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.tagline {
+  @apply text-xl font-bold text-secondary;
+  letter-spacing: 0.05em;
+  animation: fadeInDown 1s ease-out;
+  animation-delay: 0.3s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  text-shadow: 0 0 20px rgba(251, 100, 182, 0.3);
+}
+
+.scanLine {
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(194, 122, 255, 0.5) 50%, transparent 100%);
+  margin: 1.5rem auto 0;
+  width: 200px;
+  animation: fadeInDown 1s ease-out;
+  animation-delay: 0.4s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* Proposition cards section */
+.propositionSection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  animation: fadeInUp 1s ease-out;
+  animation-delay: 0.5s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.propositionCard {
+  background: linear-gradient(135deg, rgba(194, 122, 255, 0.1) 0%, rgba(251, 100, 182, 0.05) 100%);
+  border: 1px solid rgba(194, 122, 255, 0.2);
+  border-radius: 8px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+  position: relative;
+  overflow: hidden;
+  animation: slideInCard 0.6s ease-out;
+  animation-delay: calc(0.5s + var(--card-index, 0) * 0.1s);
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.propositionCard:nth-child(1) {
+  --card-index: 1;
+}
+
+.propositionCard:nth-child(2) {
+  --card-index: 2;
+}
+
+.propositionCard:nth-child(3) {
+  --card-index: 3;
+}
+
+.propositionCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(194, 122, 255, 0.2) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.propositionCard:hover {
+  border-color: rgba(194, 122, 255, 0.5);
+  box-shadow: 0 0 30px rgba(194, 122, 255, 0.2), inset 0 0 30px rgba(194, 122, 255, 0.05);
+  transform: translateY(-4px);
+}
+
+.propositionCard:hover::before {
+  opacity: 1;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cardIcon {
+  @apply text-secondary;
+  filter: drop-shadow(0 0 4px rgba(251, 100, 182, 0.4));
+  flex-shrink: 0;
+}
+
+.propositionCard h2 {
+  @apply text-lg font-bold text-heading;
+  margin: 0;
+}
+
+.propositionCard p {
+  @apply text-sm text-body;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* CTA Section */
+.ctaSection {
+  text-align: center;
+  animation: fadeInUp 1s ease-out;
+  animation-delay: 0.8s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.ctaText {
+  @apply text-lg font-semibold text-heading mb-4;
+  text-shadow: 0 0 20px rgba(194, 122, 255, 0.2);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Button styles */
+.buttonPrimary,
+.buttonSecondary {
+  position: relative;
+  padding: 0.875rem 2rem;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: fadeInUp 0.8s ease-out;
+  animation-delay: 0.9s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.buttonPrimary::before,
+.buttonSecondary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.buttonPrimary {
+  background: linear-gradient(135deg, #C27AFF 0%, #FB64B6 100%);
+  color: white;
+  box-shadow: 0 0 20px rgba(194, 122, 255, 0.4);
+}
+
+.buttonPrimary:hover {
+  box-shadow: 0 0 30px rgba(194, 122, 255, 0.8), 0 0 50px rgba(251, 100, 182, 0.4);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.buttonPrimary::before {
+  opacity: 1;
+}
+
+.buttonSecondary {
+  background: rgba(194, 122, 255, 0.15);
+  color: #C27AFF;
+  border: 2px solid rgba(194, 122, 255, 0.4);
+  animation-delay: 1s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.buttonSecondary:hover {
+  background: rgba(194, 122, 255, 0.25);
+  border-color: rgba(194, 122, 255, 0.8);
+  box-shadow: 0 0 20px rgba(194, 122, 255, 0.5);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.buttonSecondary::before {
+  opacity: 1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .logo {
+    @apply text-4xl;
+  }
+
+  .tagline {
+    @apply text-lg;
+  }
+
+  .propositionSection {
+    grid-template-columns: 1fr;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .buttonPrimary,
+  .buttonSecondary {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .content {
+    @apply py-12;
+  }
+}

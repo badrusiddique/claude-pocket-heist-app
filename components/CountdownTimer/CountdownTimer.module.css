@@ -1,0 +1,18 @@
+@reference "../../app/globals.css";
+
+.active {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.expired {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: #fb64b6;
+  font-weight: 600;
+}
