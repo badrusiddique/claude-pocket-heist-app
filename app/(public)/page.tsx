@@ -4,13 +4,25 @@
 
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Clock8, Zap } from "lucide-react";
+import { useUser } from "@/context/AuthContext";
 import styles from "./page.module.css";
 
 export default function Home() {
-  // Note: Intentionally not redirecting - users can see the splash page
-  // and choose to navigate to signup or login via buttons
+  const router = useRouter();
+  const { user, loading } = useUser();
+
+  useEffect(() => {
+    if (loading) return;
+    if (user) {
+      router.replace("/heists");
+    } else {
+      router.replace("/login");
+    }
+  }, [user, loading, router]);
 
   return (
     <div className={styles.container}>
