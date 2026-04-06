@@ -39,7 +39,7 @@ export default function CreateHeistPage() {
     if (!form.title.trim()) errs.title = "Title is required";
     if (!form.expiresAt) {
       errs.expiresAt = "Expiry date is required";
-    } else if (new Date(form.expiresAt + "Z") <= new Date()) {
+    } else if (new Date(form.expiresAt) <= new Date()) {
       errs.expiresAt = "Expiry must be in the future";
     }
     return errs;
@@ -59,7 +59,7 @@ export default function CreateHeistPage() {
         description: form.description.trim(),
         createdBy: user!.uid,
         createdAt: Timestamp.fromDate(new Date()),
-        expiresAt: Timestamp.fromDate(new Date(form.expiresAt + "Z")),
+        expiresAt: Timestamp.fromDate(new Date(form.expiresAt)),
       });
       router.push("/heists");
     } catch (err) {

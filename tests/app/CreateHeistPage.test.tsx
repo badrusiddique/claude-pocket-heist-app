@@ -30,6 +30,18 @@ vi.mock("@/context/AuthContext", () => ({
 
 import { addDoc } from "firebase/firestore";
 
+// datetime-local inputs carry local time strings (no timezone suffix).
+// This helper formats a Date as the local equivalent of what a browser
+// datetime-local input would produce, so validation using new Date(value)
+// (local parse) correctly sees it as a future date on any timezone.
+function toDatetimeLocal(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  );
+}
+
 describe("CreateHeistPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -80,7 +92,7 @@ describe("CreateHeistPage", () => {
   it("calls addDoc with Timestamp when form is valid", async () => {
     vi.mocked(addDoc).mockResolvedValueOnce({ id: "new-heist" } as any);
     const futureDate = new Date(Date.now() + 3600 * 1000);
-    const futureDateLocal = futureDate.toISOString().slice(0, 16);
+    const futureDateLocal = toDatetimeLocal(futureDate);
 
     render(<CreateHeistPage />);
     await userEvent.type(screen.getByLabelText(/title/i), "Bank Job");
@@ -109,7 +121,7 @@ describe("CreateHeistPage", () => {
   it("redirects to /heists after successful submission", async () => {
     vi.mocked(addDoc).mockResolvedValueOnce({ id: "new-heist" } as any);
     const futureDate = new Date(Date.now() + 3600 * 1000);
-    const futureDateLocal = futureDate.toISOString().slice(0, 16);
+    const futureDateLocal = toDatetimeLocal(futureDate);
 
     render(<CreateHeistPage />);
     await userEvent.type(screen.getByLabelText(/title/i), "Bank Job");
